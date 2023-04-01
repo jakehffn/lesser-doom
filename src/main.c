@@ -49,6 +49,9 @@ char texture_data[WIDTH*HEIGHT*4];
 GLuint VAO = -1;
 GLuint screen_texture = -1;
 
+int window_width = WIDTH;
+int window_height = HEIGHT;
+
 bool quit = false;
 SDL_Event event;
 
@@ -160,6 +163,14 @@ void pollEvents() {
                 printf("Quit event received\n");
                 quit = true;
                 break;
+
+            case SDL_WINDOWEVENT:
+
+                if (event.window.event == SDL_WINDOWEVENT_RESIZED) {
+                    glViewport(0, 0, event.window.data1, event.window.data2);
+                }
+                break;
+            
             case SDL_KEYDOWN:
                 switch(event.key.keysym.sym) {
 
