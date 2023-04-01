@@ -49,6 +49,14 @@ char texture_data[WIDTH*HEIGHT*4];
 GLuint VAO = -1;
 GLuint screen_texture = -1;
 
+bool quit = false;
+SDL_Event event;
+
+bool keydown_w = false;
+bool keydown_a = false;
+bool keydown_s = false;
+bool keydown_d = false;
+
 void createScreenTexture() {
 
     glGenTextures(1, &screen_texture);
@@ -98,8 +106,6 @@ void render() {
     swapWindow(window);
 
     // glBindTexture(GL_TEXTURE_2D, 0); 
-
-    // destroyShader(shader);
 }
 
 void genImage(int t) {
@@ -145,6 +151,73 @@ void genImage(int t) {
     // glBindTexture(GL_TEXTURE_2D, 0); 
 }
 
+void pollEvents() {
+
+    while (SDL_PollEvent(&event)) {
+        switch (event.type) {
+            case SDL_QUIT:
+                // User clicked the close button, exit loop
+                printf("Quit event received\n");
+                quit = true;
+                break;
+            case SDL_KEYDOWN:
+                switch(event.key.keysym.sym) {
+
+                    case SDLK_ESCAPE:
+                        quit = true;
+                        break;
+
+                    case SDLK_w:
+                        keydown_w = true;
+                        break;
+
+                    case SDLK_a:
+                        keydown_a = true;
+                        break;
+
+                    case SDLK_s:
+                        keydown_s = true;
+                        break;
+
+                    case SDLK_d:
+                        keydown_d = true;
+                        break;
+                }
+                break;
+
+            case SDL_KEYUP:
+                switch(event.key.keysym.sym) {
+
+                    case SDLK_w:
+                        keydown_w = false;
+                        break;
+
+                    case SDLK_a:
+                        keydown_a = false;
+                        break;
+
+                    case SDLK_s:
+                        keydown_s = false;
+                        break;
+
+                    case SDLK_d:
+                        keydown_d = false;
+                        break;
+                }
+                break;
+
+            case SDL_MOUSEBUTTONDOWN:
+                // User clicked the mouse button
+                printf("Mouse button %d clicked at (%d,%d)\n", event.button.button, event.button.x, event.button.y);
+                break;
+
+            default:
+                // Ignore other events
+                break;
+        }
+    }
+}
+
 int main(int argv, char** args) {
 
     window = createWindow(WIDTH, HEIGHT);
@@ -163,39 +236,22 @@ int main(int argv, char** args) {
 
         glClearColor(0.5, 0.2, 0.5, 1.0);
         createQuadVAO();
-        
-
-        bool quit = false;
-        SDL_Event event;
 
         while (!quit) {
 
             // Poll for events
-            while (SDL_PollEvent(&event)) {
-                switch (event.type) {
-                    case SDL_QUIT:
-                        // User clicked the close button, exit loop
-                        printf("Quit event received\n");
-                        quit = true;
-                        break;
-                    case SDL_KEYDOWN:
-                        // User pressed a key
-                        printf("Key pressed: %s\n", SDL_GetKeyName(event.key.keysym.sym));
-                        break;
-                    case SDL_MOUSEBUTTONDOWN:
-                        // User clicked the mouse button
-                        printf("Mouse button %d clicked at (%d,%d)\n", event.button.button, event.button.x, event.button.y);
-                        break;
-                    default:
-                        // Ignore other events
-                        break;
-                }
+            pollEvents();
+
+            if (keydown_a) {
+                t += 8;
+            }
+
+            if (keydown_d) {
+                t -= 8;
             }
 
             genImage(t);
             render();
-
-            t++;
         }
     }  
 
