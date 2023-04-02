@@ -11,7 +11,7 @@
 
 typedef struct Window* Window;
 
-Window createWindow(int width, int height);
-void destroyWindow(Window window);
-bool initWindow(Window window);
-void swapWindow(Window window);
+Window windowCreate(int width, int height);
+void windowDestroy(Window window);
+bool windowInit(Window window);
+void windowSwap(Window window);

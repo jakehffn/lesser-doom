@@ -9,6 +9,6 @@
 
 typedef struct Shader* Shader;
 
-bool initShader(Shader* shader, const char* vertex_source, const char* fragment_source);
-void destroyShader(Shader shader);
-void useShader(Shader shader);
+bool shaderInit(Shader* shader, const char* vertex_source, const char* fragment_source);
+void shaderDestroy(Shader shader);
+void shaderUse(Shader shader);

@@ -4,7 +4,7 @@ struct Shader {
     GLuint program;
 };
 
-bool initShader(Shader* shader, const char* vertex_source, const char* fragment_source) {
+bool shaderInit(Shader* shader, const char* vertex_source, const char* fragment_source) {
 
     *shader = malloc(sizeof(struct Shader));
 
@@ -54,11 +54,11 @@ bool initShader(Shader* shader, const char* vertex_source, const char* fragment_
     glDeleteShader(fragment_shader);
 }
 
-void destroyShader(Shader shader) {
+void shaderDestroy(Shader shader) {
     glDeleteProgram(shader->program);
     // free(shader);
 }
 
-void useShader(Shader shader) {
+void shaderUse(Shader shader) {
     glUseProgram(shader->program);
 }

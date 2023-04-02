@@ -7,12 +7,11 @@ struct Window {
 
     SDL_Window* window;
     SDL_GLContext context;
-
 };
 
-Window createWindow(int width, int height) {
+Window windowCreate(int width, int height) {
 
-    Window window = malloc(sizeof(Window));
+    Window window = malloc(sizeof(struct Window));
 
     window->height = height;
     window->width = width;
@@ -20,7 +19,7 @@ Window createWindow(int width, int height) {
     return window;
 }
 
-void destroyWindow(Window window) {
+void windowDestroy(Window window) {
     
 	SDL_DestroyWindow(window->window);
 	window->window = NULL;
@@ -30,7 +29,7 @@ void destroyWindow(Window window) {
 	// free(window);
 }
 
-bool initWindow(Window window) {
+bool windowInit(Window window) {
 
     bool success = true;
 
@@ -84,12 +83,14 @@ bool initWindow(Window window) {
 					printf("SDL: Warning: Unable to set VSync!\nSDL Error: %s\n", SDL_GetError());
 				}
 			}
+
+			SDL_SetRelativeMouseMode(SDL_TRUE);
 		}
 	}
 
 	return success;
 }
 
-void swapWindow(Window window) {
+void windowSwap(Window window) {
     SDL_GL_SwapWindow(window->window);
 }
