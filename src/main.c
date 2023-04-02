@@ -13,8 +13,8 @@
 #include "shader.h"
 #include "world.h"
 
-#define WIDTH 300
-#define HEIGHT 300
+#define WIDTH 800
+#define HEIGHT 600
 
 const char* vertex_shader_source = "#version 300 es\n"
     "precision highp float;\n"
@@ -48,18 +48,28 @@ const float quadVertexData[] = {
 
 World world;
 char map[] = 
-    "rrrrrrrrr"
-    "b       g"
-    "b       g"
-    "b   P   g"
-    "b       g"
-    "b       g"
-    "b       g"
-    "b       g"
-    "b########";
+    "rrrrrrrrrrrrrrrrrrrrrrrrrrrrrr"
+    "b                 g          g"
+    "b                 g          g"
+    "b   P             g          g"
+    "b                 g          g"
+    "b                 g          g"
+    "b                 g          g"
+    "b     ggggggggggggg          g"
+    "b                 g          g"
+    "b  r              g          g"
+    "b                 g          g"
+    "b                            g"
+    "b                            g"
+    "b    gb                     bg"
+    "b                            g"
+    "b                            g"
+    "b                            g"
+    "b                            g"
+    "b#############################";
 
-const int world_width = 9;
-const int world_height = 9;
+const int world_width = 30;
+const int world_height = 19;
 const float world_scale = 10;
 
 Position player_position;
@@ -125,13 +135,14 @@ void renderScene() {
 
     for (int x = 0; x < WIDTH; x++) {
 
-        Ray ray = worldCastRay(world, player_position, player_angle + angle_delta*x - half_fov);
+        Ray ray = worldCastRay(world, player_position, player_angle + angle_delta*x - half_fov, player_angle);
 
         if (x == WIDTH/2) {
             printf("depth %f\n", ray.depth);
         }
 
-        int wall_height = (int) HEIGHT - ray.depth*20;
+        int wall_scaling = 3;
+        int wall_height = (int) (((float) HEIGHT / (ray.depth))*wall_scaling);
 
         for (int y = 0; y < HEIGHT; y++) {
 

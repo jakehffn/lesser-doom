@@ -21,7 +21,7 @@ World worldCreate(char* map, int width, int height, float scale) {
     return world;
 }
 
-Ray worldCastRay(World world, Position position, float angle_rad) {
+Ray worldCastRay(World world, Position position, float ray_angle, float player_angle) {
 
     Ray ray;
 
@@ -31,8 +31,8 @@ Ray worldCastRay(World world, Position position, float angle_rad) {
     float march_x = 0;
     float march_y = 0;
 
-    float delta_x = -sin(angle_rad);
-    float delta_y = cos(angle_rad);
+    float delta_x = -sin(ray_angle);
+    float delta_y = cos(ray_angle);
 
     char curr;
 
@@ -72,7 +72,8 @@ Ray worldCastRay(World world, Position position, float angle_rad) {
             ray.color = 0x222222;
     }
 
-    ray.depth = sqrt(march_x*march_x + march_y*march_y)/world->scale;
+    float hypotenuse = sqrt(march_x*march_x + march_y*march_y)/world->scale;
+    ray.depth = sin(M_PI_2 - fabs(player_angle - ray_angle))*hypotenuse;
     
     return ray;
 }
