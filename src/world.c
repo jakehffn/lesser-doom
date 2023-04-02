@@ -31,8 +31,10 @@ Ray worldCastRay(World world, Position position, float ray_angle, float player_a
     float march_x = 0;
     float march_y = 0;
 
-    float delta_x = -sin(ray_angle);
-    float delta_y = cos(ray_angle);
+    float detail = 10;
+
+    float delta_x = -sin(ray_angle)/detail;
+    float delta_y = cos(ray_angle)/detail;
 
     char curr;
 

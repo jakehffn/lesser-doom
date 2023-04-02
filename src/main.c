@@ -76,7 +76,7 @@ Position player_position;
 float player_angle = 0;
 float player_speed = 50;
 float mouse_sensitivity = 20;
-float fov = 90;
+float fov = 120;
 
 Window window = NULL;
 Shader shader = NULL;
