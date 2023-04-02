@@ -28,11 +28,11 @@ Ray worldCastRay(World world, Position position, float angle_rad) {
     int map_x;
     int map_y;
 
-    float march_x = position.x;
-    float march_y = position.y;
+    float march_x = 0;
+    float march_y = 0;
 
-    float delta_x = cos(angle_rad)*world->scale;
-    float delta_y = sin(angle_rad)*world->scale;
+    float delta_x = -sin(angle_rad);
+    float delta_y = cos(angle_rad);
 
     char curr;
 

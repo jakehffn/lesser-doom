@@ -51,8 +51,8 @@ char map[] =
     "rrrrrrrrr"
     "b       g"
     "b       g"
-    "b       g"
     "b   P   g"
+    "b       g"
     "b       g"
     "b       g"
     "b       g"
@@ -64,9 +64,9 @@ const float world_scale = 10;
 
 Position player_position;
 float player_angle = 0;
-float player_speed = 10;
+float player_speed = 50;
 float mouse_sensitivity = 20;
-float fov = 120;
+float fov = 90;
 
 Window window = NULL;
 Shader shader = NULL;
@@ -120,8 +120,8 @@ void createQuadVAO() {
 
 void renderScene() {
 
-    float angle_delta = (fov / WIDTH) / 180 * M_PI;
-    float half_fov = fov/2;
+    float angle_delta = (fov/ 180 * M_PI)/WIDTH;
+    float half_fov = (fov/ 180 * M_PI)/2;
 
     for (int x = 0; x < WIDTH; x++) {
 
@@ -196,8 +196,8 @@ void updatePlayer(uint64_t delta) {
         
         mult = keydown_s ? mult*-1 : mult;
 
-        x_fraction = cos(player_angle);
-        y_fraction = -sin(player_angle);
+        x_fraction = -sin(player_angle);
+        y_fraction = cos(player_angle);
 
 
         player_position.x += x_fraction*mult;
