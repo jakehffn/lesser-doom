@@ -75,7 +75,7 @@ Ray worldCastRay(World world, Position position, float ray_angle, float player_a
     }
 
     float hypotenuse = sqrt(march_x*march_x + march_y*march_y)/world->scale;
-    ray.depth = sin(M_PI_2 - fabs(player_angle - ray_angle))*hypotenuse;
+    ray.depth = fabs(cos(player_angle - ray_angle)*hypotenuse);
     
     return ray;
 }

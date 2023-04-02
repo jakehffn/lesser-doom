@@ -141,8 +141,8 @@ void renderScene() {
             printf("depth %f\n", ray.depth);
         }
 
-        int wall_scaling = 3;
-        int wall_height = (int) (((float) HEIGHT / (ray.depth))*wall_scaling);
+        int wall_scaling = 1;
+        int wall_height = (int) (((float) HEIGHT / ray.depth)*wall_scaling);
 
         for (int y = 0; y < HEIGHT; y++) {
 
