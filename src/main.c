@@ -74,9 +74,15 @@ const float world_scale = 10;
 
 Position player_position;
 float player_angle = 0;
-float player_speed = 50;
+float player_speed = 70;
 float mouse_sensitivity = 20;
-float fov = 120;
+
+const float fov = 120;
+float half_fov;
+float focus_to_image;
+
+const float max_fog_distance = 20;
+const float min_fog_distance = 2;
 
 Window window = NULL;
 Shader shader = NULL;
@@ -130,27 +136,32 @@ void createQuadVAO() {
 
 void renderScene() {
 
-    float angle_delta = (fov/ 180 * M_PI)/WIDTH;
-    float half_fov = (fov/ 180 * M_PI)/2;
-
     for (int x = 0; x < WIDTH; x++) {
 
-        Ray ray = worldCastRay(world, player_position, player_angle + angle_delta*x - half_fov, player_angle);
+        Ray ray = worldCastRay(world, player_position, player_angle + atan((x-(HEIGHT/2))/focus_to_image), player_angle);
 
-        if (x == WIDTH/2) {
-            printf("depth %f\n", ray.depth);
-        }
+        int wall_scaling = 1.2;
+        int wall_height = (int) ((((float) HEIGHT) / (ray.depth))*wall_scaling);
 
-        int wall_scaling = 1;
-        int wall_height = (int) (((float) HEIGHT / ray.depth)*wall_scaling);
+        float fog_amount = (ray.depth > min_fog_distance) ? 1 - fmin((ray.depth-min_fog_distance)/(max_fog_distance-min_fog_distance), 0.8) : 1;
+        
+        unsigned char r = (ray.color >> 16);
+        r = (unsigned char) ((float)r * fog_amount);
+        // r = (fog_amount > r) ? 0 : r - fog_amount;
+        unsigned char g = (ray.color >> 8);
+        g = (unsigned char) ((float)g * fog_amount);
+        // g = (fog_amount > g) ? 0 : g - fog_amount;
+        unsigned char b = (ray.color);
+        b = (unsigned char) ((float)b * fog_amount);
+        // b = (fog_amount > b) ? 0 : b - fog_amount;
 
         for (int y = 0; y < HEIGHT; y++) {
 
             if (y > (HEIGHT-wall_height)/2 && y < wall_height+(HEIGHT-wall_height)/2) {
 
-                texture_data[(y*WIDTH + x)*3 + 0] = ray.color >> 16;
-                texture_data[(y*WIDTH + x)*3 + 1] = ray.color >> 8;
-                texture_data[(y*WIDTH + x)*3 + 2] = ray.color;
+                texture_data[(y*WIDTH + x)*3 + 0] = r;
+                texture_data[(y*WIDTH + x)*3 + 1] = g;
+                texture_data[(y*WIDTH + x)*3 + 2] = b;
             } else {
                 texture_data[(y*WIDTH + x)*3 + 0] = 0x20;
                 texture_data[(y*WIDTH + x)*3 + 1] = 0x20;
@@ -317,6 +328,9 @@ int main(int argv, char** args) {
         glClearColor(0.5, 0.2, 0.5, 1.0);
         createQuadVAO();
 
+        half_fov = (fov/ 180 * M_PI)/2;
+        focus_to_image = (WIDTH/2)/tan(half_fov);
+
         uint64_t last_frame = SDL_GetTicks64();
         uint64_t current_frame = SDL_GetTicks64();
         uint64_t delta_time = 0;
@@ -332,7 +346,7 @@ int main(int argv, char** args) {
             updatePlayer(delta_time);
 
             render();
-            printf("%f %f %f\n", player_position.x, player_position.y, player_angle);
+            // printf("%f %f %f\n", player_position.x, player_position.y, player_angle);
 
             mouse_move_x = 0;
         }
