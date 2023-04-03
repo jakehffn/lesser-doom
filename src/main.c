@@ -135,12 +135,13 @@ void createQuadVAO() {
 unsigned int lerpColor(unsigned int color_1, unsigned int color_2, float lin_val) {
 
     unsigned int newColor = 0x000000;
+    unsigned int mask = 0xFF;
 
-    newColor |= (unsigned char) (((float)((unsigned char)(color_1 >> 16)) * (1-lin_val)) + ((float)((unsigned char)(color_2 >> 16)) * lin_val));
+    newColor |= (unsigned char) (((float)((color_1 >> 16)&mask) * (1-lin_val)) + ((float)((color_2 >> 16)&mask) * lin_val));
     newColor <<= 8;
-    newColor |= (unsigned char) (((float)((unsigned char)(color_1 >> 8)) * (1-lin_val)) + ((float)((unsigned char)(color_2 >> 8)) * lin_val));
+    newColor |= (unsigned char) (((float)((color_1 >> 8)&mask) * (1-lin_val)) + ((float)((color_2 >> 8)&mask) * lin_val));
     newColor <<= 8;
-    newColor |= (unsigned char) (((float)((unsigned char)(color_1 >> 0)) * (1-lin_val)) + ((float)((unsigned char)(color_2 >> 0)) * lin_val));
+    newColor |= (unsigned char) (((float)((color_1 >> 0)&mask) * (1-lin_val)) + ((float)((color_2 >> 0)&mask) * lin_val));
 
     return newColor;
 }
