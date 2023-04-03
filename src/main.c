@@ -74,8 +74,8 @@ const float world_scale = 10;
 
 Position player_position;
 float player_angle = 0;
-float player_speed = 70;
-float mouse_sensitivity = 20;
+const float player_speed = 70;
+const float mouse_sensitivity = 20;
 
 const float fov = 120;
 float half_fov;
@@ -83,15 +83,13 @@ float focus_to_image;
 
 const float max_fog_distance = 20;
 const float min_fog_distance = 2;
+const unsigned int fog_color = 0x87CEEB;
 
 Window window = NULL;
 Shader shader = NULL;
 char texture_data[WIDTH*HEIGHT*3];
 GLuint vao = -1;
 GLuint screen_texture = -1;
-
-int window_width = WIDTH;
-int window_height = HEIGHT;
 
 bool quit = false;
 SDL_Event event;
@@ -134,26 +132,37 @@ void createQuadVAO() {
     glBindBuffer(GL_ARRAY_BUFFER, 0); 
 }
 
+unsigned char applyFog(unsigned char val, float fog_amount, int fog_color_offset) {
+
+    return (unsigned char) (((float)val * (1-fog_amount)) + ((float)((unsigned char)(fog_color >> fog_color_offset)) * fog_amount));
+}
+
+float getFogAmount(float depth) {
+
+    return (depth > min_fog_distance) ? fmin((depth-min_fog_distance)/(max_fog_distance-min_fog_distance), 0.8) : 0;
+}
+
 void renderScene() {
 
     for (int x = 0; x < WIDTH; x++) {
 
         Ray ray = worldCastRay(world, player_position, player_angle + atan((x-(HEIGHT/2))/focus_to_image), player_angle);
 
-        int wall_scaling = 1.2;
-        int wall_height = (int) ((((float) HEIGHT) / (ray.depth))*wall_scaling);
+        float wall_scaling = 1.2;
+        int wall_height = (int) (( HEIGHT / (ray.depth))*wall_scaling);
 
-        float fog_amount = (ray.depth > min_fog_distance) ? 1 - fmin((ray.depth-min_fog_distance)/(max_fog_distance-min_fog_distance), 0.8) : 1;
-        
         unsigned char r = (ray.color >> 16);
-        r = (unsigned char) ((float)r * fog_amount);
-        // r = (fog_amount > r) ? 0 : r - fog_amount;
         unsigned char g = (ray.color >> 8);
-        g = (unsigned char) ((float)g * fog_amount);
-        // g = (fog_amount > g) ? 0 : g - fog_amount;
         unsigned char b = (ray.color);
-        b = (unsigned char) ((float)b * fog_amount);
-        // b = (fog_amount > b) ? 0 : b - fog_amount;
+
+        float fog_amount = getFogAmount(ray.depth);
+        
+        if (fog_amount > 0) {
+
+            r = applyFog(r, fog_amount, 16);
+            g = applyFog(g, fog_amount, 8);
+            b = applyFog(b, fog_amount, 0);
+        }
 
         for (int y = 0; y < HEIGHT; y++) {
 
@@ -162,10 +171,38 @@ void renderScene() {
                 texture_data[(y*WIDTH + x)*3 + 0] = r;
                 texture_data[(y*WIDTH + x)*3 + 1] = g;
                 texture_data[(y*WIDTH + x)*3 + 2] = b;
+
             } else {
-                texture_data[(y*WIDTH + x)*3 + 0] = 0x20;
-                texture_data[(y*WIDTH + x)*3 + 1] = 0x20;
-                texture_data[(y*WIDTH + x)*3 + 2] = 0x20;
+
+                if (y < HEIGHT/2) {
+
+                    // Sky color
+                    texture_data[(y*WIDTH + x)*3 + 0] = 0x87;
+                    texture_data[(y*WIDTH + x)*3 + 1] = 0xCE;
+                    texture_data[(y*WIDTH + x)*3 + 2] = 0xEB;
+
+                } else {
+                    
+                    float floor_depth = HEIGHT / ((y - HEIGHT/2)*2/wall_scaling); // Opposite of the wall_height equation
+
+                    int floor_r = 0x20;
+                    int floor_g = 0x20;
+                    int floor_b = 0x20;
+
+                    float floor_fog = getFogAmount(floor_depth);
+                    
+                    if (floor_fog > 0) {
+
+                        floor_r = applyFog(floor_r, floor_fog, 16);
+                        floor_g = applyFog(floor_g, floor_fog, 8);
+                        floor_b = applyFog(floor_b, floor_fog, 0);
+                    }
+
+                    // Floor color
+                    texture_data[(y*WIDTH + x)*3 + 0] = floor_r;
+                    texture_data[(y*WIDTH + x)*3 + 1] = floor_g;
+                    texture_data[(y*WIDTH + x)*3 + 2] = floor_b;
+                }
             }
         }
     }
