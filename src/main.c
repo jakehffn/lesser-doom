@@ -55,18 +55,18 @@ char map[] =
     "b                 g          g"
     "b                 g          g"
     "b                 g          g"
-    "b     ggggggggggggg          g"
+    "b     ggggggggggggg     #####g"
     "b                 g          g"
     "b  r              g          g"
     "b                 g          g"
     "b                            g"
     "b                            g"
-    "b    gb                     bg"
-    "b                            g"
-    "b                            g"
-    "b                            g"
-    "b                            g"
-    "b#############################";
+    "b    gb           rrrrr    bbg"
+    "b                 r          g"
+    "b                 r          g"
+    "b                 r          g"
+    "b                 r          g"
+    "b###################  ########";
 
 const int world_width = 30;
 const int world_height = 19;
@@ -132,9 +132,17 @@ void createQuadVAO() {
     glBindBuffer(GL_ARRAY_BUFFER, 0); 
 }
 
-unsigned char applyFog(unsigned char val, float fog_amount, int fog_color_offset) {
+unsigned int lerpColor(unsigned int color_1, unsigned int color_2, float lin_val) {
 
-    return (unsigned char) (((float)val * (1-fog_amount)) + ((float)((unsigned char)(fog_color >> fog_color_offset)) * fog_amount));
+    unsigned int newColor = 0x000000;
+
+    newColor |= (unsigned char) (((float)((unsigned char)(color_1 >> 16)) * (1-lin_val)) + ((float)((unsigned char)(color_2 >> 16)) * lin_val));
+    newColor <<= 8;
+    newColor |= (unsigned char) (((float)((unsigned char)(color_1 >> 8)) * (1-lin_val)) + ((float)((unsigned char)(color_2 >> 8)) * lin_val));
+    newColor <<= 8;
+    newColor |= (unsigned char) (((float)((unsigned char)(color_1 >> 0)) * (1-lin_val)) + ((float)((unsigned char)(color_2 >> 0)) * lin_val));
+
+    return newColor;
 }
 
 float getFogAmount(float depth) {
@@ -151,26 +159,20 @@ void renderScene() {
         float wall_scaling = 1.2;
         int wall_height = (int) (( HEIGHT / (ray.depth))*wall_scaling);
 
-        unsigned char r = (ray.color >> 16);
-        unsigned char g = (ray.color >> 8);
-        unsigned char b = (ray.color);
-
         float fog_amount = getFogAmount(ray.depth);
         
         if (fog_amount > 0) {
 
-            r = applyFog(r, fog_amount, 16);
-            g = applyFog(g, fog_amount, 8);
-            b = applyFog(b, fog_amount, 0);
+            ray.color = lerpColor(ray.color, fog_color, fog_amount);
         }
 
         for (int y = 0; y < HEIGHT; y++) {
 
             if (y > (HEIGHT-wall_height)/2 && y < wall_height+(HEIGHT-wall_height)/2) {
 
-                texture_data[(y*WIDTH + x)*3 + 0] = r;
-                texture_data[(y*WIDTH + x)*3 + 1] = g;
-                texture_data[(y*WIDTH + x)*3 + 2] = b;
+                texture_data[(y*WIDTH + x)*3 + 0] = ray.color >> 16;
+                texture_data[(y*WIDTH + x)*3 + 1] = ray.color >> 8;
+                texture_data[(y*WIDTH + x)*3 + 2] = ray.color >> 0;
 
             } else {
 
@@ -185,23 +187,19 @@ void renderScene() {
                     
                     float floor_depth = HEIGHT / ((y - HEIGHT/2)*2/wall_scaling); // Opposite of the wall_height equation
 
-                    int floor_r = 0x20;
-                    int floor_g = 0x20;
-                    int floor_b = 0x20;
+                    int floor_color = 0x202020;
 
                     float floor_fog = getFogAmount(floor_depth);
                     
                     if (floor_fog > 0) {
 
-                        floor_r = applyFog(floor_r, floor_fog, 16);
-                        floor_g = applyFog(floor_g, floor_fog, 8);
-                        floor_b = applyFog(floor_b, floor_fog, 0);
+                        floor_color = lerpColor(floor_color, fog_color, floor_fog);
                     }
 
                     // Floor color
-                    texture_data[(y*WIDTH + x)*3 + 0] = floor_r;
-                    texture_data[(y*WIDTH + x)*3 + 1] = floor_g;
-                    texture_data[(y*WIDTH + x)*3 + 2] = floor_b;
+                    texture_data[(y*WIDTH + x)*3 + 0] = floor_color >> 16;
+                    texture_data[(y*WIDTH + x)*3 + 1] = floor_color >> 8;
+                    texture_data[(y*WIDTH + x)*3 + 2] = floor_color >> 0;
                 }
             }
         }
