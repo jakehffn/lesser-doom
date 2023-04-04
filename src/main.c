@@ -70,20 +70,21 @@ char map[] =
 
 const int world_width = 30;
 const int world_height = 19;
-const float world_scale = 10;
+const double world_scale = 10;
 
 Position player_position;
-float player_angle = 0;
-const float player_speed = 70;
-const float mouse_sensitivity = 20;
+double player_angle = 0;
+const double player_speed = 70;
+const double mouse_sensitivity = 20;
 
-const float fov = 120;
-float half_fov;
-float focus_to_image;
+const double fov = 100;
+double half_fov;
+double focus_to_image;
 
-const float max_fog_distance = 20;
-const float min_fog_distance = 2;
+const double max_fog_distance = 20;
+const double min_fog_distance = 2;
 const unsigned int fog_color = 0x87CEEB;
+const unsigned int light_color = 0xFFFFFF;
 
 Window window = NULL;
 Shader shader = NULL;
@@ -132,7 +133,7 @@ void createQuadVAO() {
     glBindBuffer(GL_ARRAY_BUFFER, 0); 
 }
 
-unsigned int lerpColor(unsigned int color_1, unsigned int color_2, float lin_val) {
+unsigned int lerpColor(unsigned int color_1, unsigned int color_2, double lin_val) {
 
     unsigned int newColor = 0x000000;
     unsigned int mask = 0xFF;
@@ -146,7 +147,7 @@ unsigned int lerpColor(unsigned int color_1, unsigned int color_2, float lin_val
     return newColor;
 }
 
-float getFogAmount(float depth) {
+double getFogAmount(double depth) {
 
     return (depth > min_fog_distance) ? fmin((depth-min_fog_distance)/(max_fog_distance-min_fog_distance), 0.8) : 0;
 }
@@ -155,12 +156,13 @@ void renderScene() {
 
     for (int x = 0; x < WIDTH; x++) {
 
-        Ray ray = worldCastRay(world, player_position, player_angle + atan((x-(HEIGHT/2))/focus_to_image), player_angle);
+        Ray ray = worldCastRay(world, player_position, player_angle + atan((x-(WIDTH/2))/focus_to_image), player_angle);
 
-        float wall_scaling = 1.2;
-        int wall_height = (int) (( HEIGHT / (ray.depth))*wall_scaling);
+        ray.color = lerpColor(light_color, ray.color, sqrt(sin(ray.angle_of_incidence)));
 
-        float fog_amount = getFogAmount(ray.depth);
+        int wall_height = (int) (( HEIGHT / (ray.depth)));
+
+        double fog_amount = getFogAmount(ray.depth);
         
         if (fog_amount > 0) {
 
@@ -186,11 +188,11 @@ void renderScene() {
 
                 } else {
                     
-                    float floor_depth = HEIGHT / ((y - HEIGHT/2)*2/wall_scaling); // Opposite of the wall_height equation
+                    double floor_depth = HEIGHT / ((y - HEIGHT/2.0f)*2.0f); // Opposite of the wall_height equation
 
                     int floor_color = 0x202020;
 
-                    float floor_fog = getFogAmount(floor_depth);
+                    double floor_fog = getFogAmount(floor_depth);
                     
                     if (floor_fog > 0) {
 
@@ -248,6 +250,7 @@ void updatePlayer(uint64_t delta) {
 
     float x_fraction;
     float y_fraction;
+
     float mult = (delta/1000.0)*player_speed;
 
     if ((keydown_w != keydown_s)) {
@@ -257,6 +260,18 @@ void updatePlayer(uint64_t delta) {
         x_fraction = -sin(player_angle);
         y_fraction = cos(player_angle);
 
+        player_position.x += x_fraction*mult;
+        player_position.y += y_fraction*mult;
+    }
+
+    if ((keydown_a != keydown_d)) {
+        
+        mult = keydown_s ? mult*-1 : mult;
+
+        float turn_angle = keydown_d ? M_PI_2 : -M_PI_2;
+
+        x_fraction = -sin(player_angle + turn_angle);
+        y_fraction = cos(player_angle + turn_angle);
 
         player_position.x += x_fraction*mult;
         player_position.y += y_fraction*mult;
@@ -364,7 +379,7 @@ int main(int argv, char** args) {
         glClearColor(0.5, 0.2, 0.5, 1.0);
         createQuadVAO();
 
-        half_fov = (fov/ 180 * M_PI)/2;
+        half_fov = (fov/ 180.0f * M_PI)/2.0f;
         focus_to_image = (WIDTH/2)/tan(half_fov);
 
         uint64_t last_frame = SDL_GetTicks64();

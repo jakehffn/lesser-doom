@@ -7,19 +7,19 @@
 typedef struct World* World;
 
 struct Position {
-    float x;
-    float y;
+    double x;
+    double y;
 };
 
 struct Ray {
-
-    float depth;
+    double depth;
     unsigned int color;
+    double angle_of_incidence;
 };
 
 typedef struct Position Position;
 typedef struct Ray Ray;
 
-World worldCreate(char* map, int width, int height, float scale);
-Ray worldCastRay(World world, Position position, float ray_angle, float player_angle);
+World worldCreate(char* map, int width, int height, double scale);
+Ray worldCastRay(World world, Position position, double ray_angle, double player_angle);
 Position worldGetPlayerPosition(World world);

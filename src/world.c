@@ -5,11 +5,17 @@ struct World {
     char* map;
     int map_width;
     int map_height;
-    float scale;
+    double scale;
 };
 
+enum Side {
+    SOUTH,
+    NORTH,
+    EAST,
+    WEST
+};
 
-World worldCreate(char* map, int width, int height, float scale) {
+World worldCreate(char* map, int width, int height, double scale) {
 
     World world = malloc(sizeof(struct World));
 
@@ -21,28 +27,115 @@ World worldCreate(char* map, int width, int height, float scale) {
     return world;
 }
 
-Ray worldCastRay(World world, Position position, float ray_angle, float player_angle) {
+unsigned int getRayColor(unsigned char symbol) {
+
+    switch(symbol) {
+        case 'r':
+            return 0xFF2222;
+        case 'g':
+            return 0x22FF22;
+        case 'b':
+            return 0x2222FF;
+        default:
+            return 0x222222;
+    }
+}
+
+double getAngleOfIncidence(enum Side side, double angle) {
+
+    switch(side) {
+        case WEST:
+            return M_PI_2 - (angle - M_PI - M_PI_2);
+        case EAST:
+            return M_PI_2 - (angle - M_PI_2);
+        case NORTH:
+            return M_PI_2 - angle;
+        case SOUTH:
+            return M_PI_2 - (angle - M_PI);
+        default:
+            return 0;
+    }
+}
+
+enum Side getSideHit(int x, int y, int prev_x, int prev_y) {
+
+    if (x > prev_x) {
+        return WEST;
+    }
+    if (x < prev_x) {
+        return EAST;
+    }
+    if (y > prev_y) {
+        return NORTH;
+    }
+    if (y < prev_y) {
+        return SOUTH;
+    }
+}
+
+double getDepth(Position player_position, int map_x, int map_y, double delta_x, double delta_y, double scale, enum Side side) {
+
+    if (delta_x == 0) {
+
+        int add_height = (delta_y < 0) ? 1 : 0; // When casting in negative directions, you need to account for the width of map cells
+        return fabs((map_y + add_height)*scale - player_position.y);
+    }
+
+    if (delta_y == 0) {
+
+        int add_width = (delta_x < 0) ? 1 : 0;
+        return fabs((map_x + add_width)*scale - player_position.x);
+    }
+
+    if (side == NORTH || side == SOUTH) {
+
+        double slope = delta_y/delta_x;
+        int add_height = (side == SOUTH) ? 1 : 0;
+
+        double y = (map_y + add_height) * scale;
+        double x = y/slope + player_position.x - player_position.y/slope;
+
+        return sqrt((player_position.x - x)*(player_position.x - x) + (player_position.y - y)*(player_position.y - y));
+    }
+
+    if (side == EAST || side == WEST) {
+
+        double slope = delta_x/delta_y;
+        int add_width = (side == EAST) ? 1 : 0;
+
+        double x = (map_x + add_width) * scale;
+        double y = x/slope + player_position.y - player_position.x/slope;
+
+        return sqrt((player_position.x - x)*(player_position.x - x) + (player_position.y - y)*(player_position.y - y));
+    }
+}
+
+Ray worldCastRay(World world, Position position, double ray_angle, double player_angle) {
 
     Ray ray;
 
-    int map_x;
-    int map_y;
+    int map_x = (int) (position.x/world->scale);
+    int map_y = (int) (position.y/world->scale);
 
-    float march_x = 0;
-    float march_y = 0;
+    int prev_map_x;
+    int prev_map_y;
 
-    float detail = 10;
+    double march_x = 0;
+    double march_y = 0;
 
-    float delta_x = -sin(ray_angle)/detail;
-    float delta_y = cos(ray_angle)/detail;
+    double detail = 10;
+
+    double delta_x = -sin(ray_angle)/detail;
+    double delta_y = cos(ray_angle)/detail;
 
     char curr;
-
-    // printf("%f %f\n", delta_x, delta_y);
 
     do {
         march_x += delta_x;
         march_y += delta_y;
+
+        prev_map_x = map_x;
+        prev_map_y = map_y;
 
         map_x = (int) ((position.x+march_x)/world->scale);
         map_y = (int) ((position.y+march_y)/world->scale);
@@ -59,23 +152,20 @@ Ray worldCastRay(World world, Position position, float ray_angle, float player_a
 
     } while (curr == ' ' || curr == 'P');
 
-    switch(curr) {
-        case 'r':
-            ray.color = 0xFF2222;
-            break;
-        case 'g':
-            ray.color = 0x22FF22;
-            break;
-        case 'b':
-            ray.color = 0x2222FF;
-            break;
+    if ((map_x != prev_map_x) && (map_y != prev_map_y)) {
+        // There are cases where the ray passes perfectly through a corner and the side of the block that was hit cannot be known
+        // In these cases, do the ray cast in a very slightly different direction
+        return worldCastRay(world, position, ray_angle - 0.0001, player_angle);
 
-        default:
-            ray.color = 0x222222;
+    } else {
+
+        enum Side side = getSideHit(map_x, map_y, prev_map_x, prev_map_y);
+
+        double raw_depth = getDepth(position, map_x, map_y, delta_x, delta_y, world->scale, side)/world->scale;
+        ray.depth = fabs(cos(player_angle - ray_angle)*raw_depth);
+        ray.color = getRayColor(curr);
+        ray.angle_of_incidence = getAngleOfIncidence(side, ray_angle);
     }
-
-    float hypotenuse = sqrt(march_x*march_x + march_y*march_y)/world->scale;
-    ray.depth = fabs(cos(player_angle - ray_angle)*hypotenuse);
     
     return ray;
 }
