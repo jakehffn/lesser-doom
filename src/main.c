@@ -15,6 +15,7 @@
 
 #define WIDTH 800
 #define HEIGHT 600
+#define NUM_THREADS 4
 
 const char* vertex_shader_source = "#version 300 es\n"
     "precision highp float;\n"
@@ -45,6 +46,9 @@ const float quadVertexData[] = {
     1.0f, 1.0f, 1.0f, 1.0f,
     1.0f, 0.0f, 1.0f, 0.0f
 };
+
+pthread_t threads[NUM_THREADS];
+int thread_args[NUM_THREADS];
 
 World world;
 char map[] = 
@@ -152,13 +156,19 @@ double getFogAmount(double depth) {
     return (depth > min_fog_distance) ? fmin((depth-min_fog_distance)/(max_fog_distance-min_fog_distance), 0.8) : 0;
 }
 
-void renderScene() {
+void* renderScene(void* thread_num) {
 
-    for (int x = 0; x < WIDTH; x++) {
+
+    float thread_div = (float) WIDTH / NUM_THREADS;
+
+    int thread_start = thread_div * *((int*)thread_num);
+    int thread_end = thread_div * (*((int*)thread_num) + 1);
+
+    for (int x = thread_start; x < thread_end; x++) {
 
         Ray ray = worldCastRay(world, player_position, player_angle + atan((x-(WIDTH/2))/focus_to_image), player_angle);
 
-        ray.color = lerpColor(light_color, ray.color, sqrt(sin(ray.angle_of_incidence)));
+        ray.color = lerpColor(light_color, ray.color, sqrt(sin(ray.angle_of_incidence))); // Specular highlight
 
         int wall_height = (int) (( HEIGHT / (ray.depth)));
 
@@ -208,6 +218,19 @@ void renderScene() {
         }
     }
 
+    return NULL;
+}
+
+void render() {
+
+    for (int it = 0; it < NUM_THREADS; it++) {
+        pthread_create(&(threads[it]), NULL, renderScene, (void*) (&(thread_args[it])));
+    }
+
+    for (int it = 0; it < NUM_THREADS; it++) {
+        pthread_join(threads[it], NULL);
+    }
+
     glBindTexture(GL_TEXTURE_2D, screen_texture); 
     
     glTexSubImage2D(
@@ -221,14 +244,7 @@ void renderScene() {
         GL_UNSIGNED_BYTE,
         texture_data
     );
-}
-
-void render() {
-
-    renderScene();
-
-    // shader = createShader(vertex_shader_source, fragment_shader_source);
-    // compileShader(shader);
+    
     glClear(GL_COLOR_BUFFER_BIT);
     shaderUse(shader);
 
@@ -254,7 +270,7 @@ void updatePlayer(uint64_t delta) {
     float mult = (delta/1000.0)*player_speed;
 
     if ((keydown_w != keydown_s)) {
-        
+
         mult = keydown_s ? mult*-1 : mult;
 
         x_fraction = -sin(player_angle);
@@ -265,7 +281,7 @@ void updatePlayer(uint64_t delta) {
     }
 
     if ((keydown_a != keydown_d)) {
-        
+
         mult = keydown_s ? mult*-1 : mult;
 
         float turn_angle = keydown_d ? M_PI_2 : -M_PI_2;
@@ -364,6 +380,11 @@ int main(int argv, char** args) {
 
     world = worldCreate(map, world_width, world_height, world_scale);
     player_position = worldGetPlayerPosition(world);
+
+    // Prepare thread args
+    for (int it = 0; it < NUM_THREADS; it++) {
+        thread_args[it] = it;
+    }
 
     if (!windowInit(window)) {
 
