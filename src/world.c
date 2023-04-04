@@ -123,7 +123,8 @@ Ray worldCastRay(World world, Position position, double ray_angle, double player
     double march_x = 0;
     double march_y = 0;
 
-    double detail = 10;
+    double detail = 10; // This will determine how small the steps are when doing a raycast
+    // Detail values too low will cause corners of cells be be lost due to resampling
 
     double delta_x = -sin(ray_angle)/detail;
     double delta_y = cos(ray_angle)/detail;
@@ -162,7 +163,7 @@ Ray worldCastRay(World world, Position position, double ray_angle, double player
         enum Side side = getSideHit(map_x, map_y, prev_map_x, prev_map_y);
 
         double raw_depth = getDepth(position, map_x, map_y, delta_x, delta_y, world->scale, side)/world->scale;
-        ray.depth = fabs(cos(player_angle - ray_angle)*raw_depth);
+        ray.depth = fabs(cos(player_angle - ray_angle)*raw_depth); // Find the distance to the plane of the player rather than to the player
         ray.color = getRayColor(curr);
         ray.angle_of_incidence = getAngleOfIncidence(side, ray_angle);
     }
