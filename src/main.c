@@ -103,6 +103,9 @@ bool keydown_w = false;
 bool keydown_a = false;
 bool keydown_s = false;
 bool keydown_d = false;
+bool keydown_left = false;
+bool keydown_right = false;
+
 int mouse_move_x = 0;
 
 void createScreenTexture() {
@@ -157,7 +160,6 @@ double getFogAmount(double depth) {
 }
 
 void* renderScene(void* thread_num) {
-
 
     float thread_div = (float) WIDTH / NUM_THREADS;
 
@@ -253,16 +255,25 @@ void render() {
 
     glDrawArrays(GL_TRIANGLES, 0, 6);
 
-    // glBindVertexArray(0);
-    // glUseProgram(0);
+    glBindVertexArray(0);
+    glUseProgram(0);
     windowSwap(window);
 
-    // glBindTexture(GL_TEXTURE_2D, 0); 
+    glBindTexture(GL_TEXTURE_2D, 0); 
 }
 
 void updatePlayer(uint64_t delta) {
 
+    // Mouse movement
     player_angle += mouse_move_x/1000.0 * mouse_sensitivity;
+    
+    // Arrow movement
+    if (keydown_left != keydown_right) {
+
+        float change = (keydown_left) ? -1 : 1;
+        float arrow_speed = 3.5f;
+        player_angle += (delta/1000.0)*change*arrow_speed;
+    }
 
     float x_fraction;
     float y_fraction;
@@ -337,6 +348,14 @@ void pollEvents() {
                     case SDLK_d:
                         keydown_d = true;
                         break;
+                    
+                    case SDLK_LEFT:
+                        keydown_left = true;
+                        break;
+                    
+                    case SDLK_RIGHT:
+                        keydown_right = true;
+                        break;
                 }
                 break;
 
@@ -358,12 +377,15 @@ void pollEvents() {
                     case SDLK_d:
                         keydown_d = false;
                         break;
-                }
-                break;
 
-            case SDL_MOUSEBUTTONDOWN:
-                // User clicked the mouse button
-                printf("Mouse button %d clicked at (%d,%d)\n", event.button.button, event.button.x, event.button.y);
+                    case SDLK_LEFT:
+                        keydown_left = false;
+                        break;
+                    
+                    case SDLK_RIGHT:
+                        keydown_right = false;
+                        break;
+                }
                 break;
 
             default:
