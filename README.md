@@ -45,7 +45,7 @@ mkdir build && cd build
 This project required some modern features of C. Before running CMake, it may be required to point CMake to your modern compiler, otherwise it may find a C89 compiler like it was on my machine. If this is the case, make sure to set the environment variable for CMake to find the correct compiler; this will only need to be done once (or anytime you delete your `CMakeCache.txt`).
 
 ```
- export CC=/usr/bin/gcc
+export CC=/usr/bin/gcc
 ```
 
 now run CMake and then build:
