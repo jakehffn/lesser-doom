@@ -3,7 +3,7 @@
 #include <stdbool.h>
 
 // GLEW must come before OpenGL
-#include <GL\glew.h>
+#include <GL/glew.h>
 #include <SDL.h>
 #include <SDL_opengl.h>
 
