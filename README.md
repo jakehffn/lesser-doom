@@ -2,9 +2,25 @@
 
 **Experiments with Doom-style rendering in C**
 
-There's not much to see here yet.
+## Features
+
+- Specular highlights
+- Different colored materials
+- Threads
+
+## Controls
+
+- **WASD** - Movement
+- **Mouse/Trackpad**- Pan left/right
+- **Left/Right arrow keys** - Also pan left/right *(I haven't looked into it yet, but on Ubuntu the mouse is waaay too fast)*
+
+## Example
+
+![Example](./examples/example_new.gif)
 
 ![Example](./examples/example.gif)
+
+An earlier build
 
 ## Build
 
