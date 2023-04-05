@@ -57,6 +57,6 @@ cmake .. && cmake --build .
 There is a chance the program says something like 
 > "SDL: OpenGL context could not be created!"
 
-In this case, that version of OpenGL is not supported on your machine; you can instead use software rendering by running the program with an additional environment variable:
+In this case, that version of OpenGL is probably not supported on your machine; you can instead use software rendering by running the program with an additional environment variable:
 
 `LIBGL_ALWAYS_SOFTWARE=1 ./lesser-doom`
