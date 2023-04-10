@@ -220,7 +220,7 @@ void* renderScene(void* thread_num) {
         }
     }
 
-    return NULL;
+    pthread_exit(0);
 }
 
 void render() {
