@@ -2,25 +2,23 @@
 
 **Experiments with Doom-style rendering in C**
 
-## Features
+Features multi-threaded rendering, specular highlights, fog, and different colored materials.
 
-- Specular highlights
-- Different colored materials
-- Threads
+This is a pretty barebones impementation. It utilizes OpenGL for rendering a textured quad; all rendering is done to an array which is then streamed to the texture.
 
 ## Controls
 
-- **WASD** - Movement
-- **Mouse/Trackpad**- Pan left/right
-- **Left/Right arrow keys** - Also pan left/right *(I haven't looked into it yet, but on Ubuntu the mouse is waaay too fast)*
+| Key | Action |
+|-----|---------|
+| **W,A,S,D** | Movement |
+| **Mouse/Trackpad** | Camera* |
+| **Left/Right arrow keys** | Alt. Camera |
+
+**(I haven't looked into it yet, but on Ubuntu the mouse is waaay too fast)*
 
 ## Example
 
 ![Example](./examples/example_new.gif)
-
-![Example](./examples/example.gif)
-
-An earlier build
 
 ## Build
 
