@@ -1,6 +1,6 @@
 # Lesser Doom
 
-**Experiments with Doom-style rendering in C**
+**Experiments with Wolfenstein-style rendering in C**
 
 Features multi-threaded rendering, specular highlights, fog, and different colored materials.
 
